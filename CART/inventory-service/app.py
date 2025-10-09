@@ -10,6 +10,11 @@ db = client["farmacia"]
 def listar_inventario():
     data = list(db.inventario.find({}, {"_id": 0}))
     return jsonify(data or [{"mensaje": "Inventario vacío"}])
+    
+@app.route("/")
+def home():
+    return "✅ Catalog Service running!"
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+
