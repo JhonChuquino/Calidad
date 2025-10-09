@@ -12,6 +12,10 @@ def get_catalog():
     if not productos:
         return jsonify([{"mensaje": "Sin productos"}])
     return jsonify(productos)
+@app.route("/")
+def home():
+    return "✅ Catalog Service running!"
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+
