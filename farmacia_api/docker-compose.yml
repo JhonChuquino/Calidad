@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # 🧩 Base de datos MongoDB
+  mongo:
+    image: mongo:6.0
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data/db:/data/db
+    networks:
+      - backend
+
+  # 🧠 Catálogo de productos
+  catalog-service:
+    build: ./catalog-service
+    container_name: catalog-service
+    ports:
+      - "5001:5000"
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/pharma_store_db   # 🔹 Corregido nombre DB
+    depends_on:
+      - mongo
+    networks:
+      - backend
+
+  # 📦 Inventario
+  inventory-service:
+    build: ./inventory-service
+    container_name: inventory-service
+    ports:
+      - "5002:5000"
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/pharma_store_db
+    depends_on:
+      - mongo
+    networks:
+      - backend
+
+  # 🧾 Órdenes
+  orders-service:
+    build: ./orders-service
+    container_name: orders-service
+    ports:
+      - "5003:5000"
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/pharma_store_db
+    depends_on:
+      - mongo
+    networks:
+      - backend
+
+# 🔗 Red interna entre servicios
+networks:
+  backend:
+    driver: bridge
