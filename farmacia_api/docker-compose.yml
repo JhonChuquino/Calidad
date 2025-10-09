@@ -11,6 +11,7 @@ services:
       - ./data/db:/data/db
     networks:
       - backend
+    restart: unless-stopped
 
   # 🧠 Catálogo de productos
   catalog-service:
@@ -19,11 +20,12 @@ services:
     ports:
       - "5001:5000"
     environment:
-      - MONGO_URL=mongodb://mongo:27017/pharma_store_db   # 🔹 Corregido nombre DB
+      - MONGO_URL=mongodb://mongo:27017/pharma_store_db
     depends_on:
       - mongo
     networks:
       - backend
+    restart: unless-stopped
 
   # 📦 Inventario
   inventory-service:
@@ -37,6 +39,7 @@ services:
       - mongo
     networks:
       - backend
+    restart: unless-stopped
 
   # 🧾 Órdenes
   orders-service:
@@ -50,6 +53,7 @@ services:
       - mongo
     networks:
       - backend
+    restart: unless-stopped
 
 # 🔗 Red interna entre servicios
 networks:
