@@ -38,6 +38,7 @@ def get_catalog():
             {
                 "$group": {
                     "_id": "$sku",
+                    "sku": {"$first": "$sku"},
                     "name": {"$first": "$name"},
                     "category": {"$first": "$category"},
                     "unit_price": {"$first": "$unit_price"},
@@ -61,3 +62,4 @@ def get_catalog():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+
