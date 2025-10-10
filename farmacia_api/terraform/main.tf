@@ -89,41 +89,43 @@ resource "aws_instance" "farmacia_api" {
   vpc_security_group_ids      = [aws_security_group.farmacia_sg.id]
   associate_public_ip_address = true
 
-  user_data = <<-EOF
+    user_data = <<-EOF
     #!/bin/bash
     set -eux
     export DEBIAN_FRONTEND=noninteractive
 
+    # 🔧 Actualizar sistema e instalar dependencias
     apt-get update -y
-    apt-get install -y docker.io git curl
+    apt-get install -y python3-pip docker.io git curl
 
-    # Instalar Docker Compose (última versión estable)
+    # 🧩 Instalar Docker Compose manualmente
     curl -L "https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-Linux-x86_64" -o /usr/local/bin/docker-compose
     chmod +x /usr/local/bin/docker-compose
 
-    # Habilitar Docker
+    # 🔐 Configurar Docker
     systemctl enable docker
     systemctl start docker
     usermod -aG docker ubuntu
 
-    # Esperar a que Docker esté completamente operativo
+    # ⏱ Esperar a que Docker termine de inicializar
     sleep 10
 
-    # Clonar el repositorio
-    mkdir -p /home/ubuntu
+    # 📦 Clonar el repositorio
     cd /home/ubuntu
-    git clone ${var.repo_url} farmacia_api || true
-    cd farmacia_api
+    git clone ${var.repo_url} Calidad
+    cd Calidad/farmacia_api
 
-    # Crear volumen persistente
+    # 🗃️ Crear volumen persistente para MongoDB
     mkdir -p data/db
     chmod -R 777 data/db
 
-    # Levantar los servicios
-    /usr/local/bin/docker-compose up -d
+    # 🚀 Levantar los servicios
+    /usr/local/bin/docker-compose up -d --build
   EOF
+
 
   tags = {
     Name = "farmacia_api"
   }
 }
+
