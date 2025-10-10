@@ -6,9 +6,9 @@ from datetime import datetime
 app = Flask(__name__)
 
 # 🔗 Conexión a MongoDB (coincide con docker-compose)
-mongo_url = os.getenv("MONGO_URL", "mongodb://mongo:27017/farmacia")
+mongo_url = os.getenv("MONGO_URL", "mongodb://mongo:27017/pharma_store_db")
 client = MongoClient(mongo_url)
-db = client.get_default_database()
+db = client["pharma_store_db"]
 
 @app.route("/", methods=["GET"])
 def home():
@@ -91,3 +91,4 @@ def buscar_ordenes():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+
