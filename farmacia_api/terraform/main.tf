@@ -89,43 +89,48 @@ resource "aws_instance" "farmacia_api" {
   vpc_security_group_ids      = [aws_security_group.farmacia_sg.id]
   associate_public_ip_address = true
 
-    user_data = <<-EOF
-    #!/bin/bash
-    set -eux
-    export DEBIAN_FRONTEND=noninteractive
-
-    # 🔧 Actualizar sistema e instalar dependencias
-    apt-get update -y
-    apt-get install -y python3-pip docker.io git curl
-
-    # 🧩 Instalar Docker Compose manualmente
-    curl -L "https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-Linux-x86_64" -o /usr/local/bin/docker-compose
-    chmod +x /usr/local/bin/docker-compose
-
-    # 🔐 Configurar Docker
-    systemctl enable docker
-    systemctl start docker
-    usermod -aG docker ubuntu
-
-    # ⏱ Esperar a que Docker termine de inicializar
-    sleep 10
-
-    # 📦 Clonar el repositorio
-    cd /home/ubuntu
-    git clone ${var.repo_url} Calidad
-    cd Calidad/farmacia_api
-
-    # 🗃️ Crear volumen persistente para MongoDB
-    mkdir -p data/db
-    chmod -R 777 data/db
-
-    # 🚀 Levantar los servicios
-    /usr/local/bin/docker-compose up -d --build
+  user_data = <<-EOF
+  #!/bin/bash
+  set -eux
+  export DEBIAN_FRONTEND=noninteractive
+  
+  # 🔧 Actualizar e instalar dependencias
+  apt-get update -y
+  apt-get install -y python3-pip docker.io git curl
+  
+  # 🧩 Instalar Docker Compose manualmente
+  curl -L "https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-Linux-x86_64" -o /usr/local/bin/docker-compose
+  chmod +x /usr/local/bin/docker-compose
+  
+  # 🔐 Configurar Docker
+  systemctl enable docker
+  systemctl start docker
+  usermod -aG docker ubuntu
+  
+  # ⏳ Esperar a que Docker esté listo
+  until docker info >/dev/null 2>&1; do
+    echo "Esperando a que Docker arranque..."
+    sleep 5
+  done
+  
+  # 📦 Clonar el repositorio
+  cd /home/ubuntu
+  git clone ${var.repo_url} Calidad
+  cd Calidad/farmacia_api
+  
+  # 🗃️ Crear volumen persistente para MongoDB
+  mkdir -p data/db
+  chmod -R 777 data/db
+  
+  # 🚀 Levantar los microservicios
+  sudo /usr/local/bin/docker-compose -f docker-compose.yml up -d --build
   EOF
+
 
 
   tags = {
     Name = "farmacia_api"
   }
 }
+
 
