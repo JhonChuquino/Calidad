@@ -38,7 +38,7 @@ data "aws_ami" "ubuntu" {
 }
 
 # 🔐 Security Group
-resource "aws_security_group" "farmacia" {
+resource "aws_security_group" "farmacia_sg" {
   name        = "farmacia-sg"
   description = "Allow SSH, microservices and MongoDB"
   vpc_id      = data.aws_vpc.default.id
