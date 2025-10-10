@@ -40,11 +40,11 @@ data "aws_ami" "ubuntu" {
 # 🔐 Security Group
 resource "aws_security_group" "farmacia_sg" {
   name        = "farmacia-sg"
-  description = "Permite SSH, microservicios (5001-5003) y MongoDB opcional"
+  description = "Allow SSH, microservices and MongoDB optional"
   vpc_id      = data.aws_vpc.default.id
 
   ingress {
-    description = "SSH acceso remoto"
+    description = "SSH access"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
@@ -52,7 +52,7 @@ resource "aws_security_group" "farmacia_sg" {
   }
 
   ingress {
-    description = "Microservicios Farmacia (catalog, inventory, orders)"
+    description = "Microservices ports"
     from_port   = 5001
     to_port     = 5003
     protocol    = "tcp"
@@ -60,15 +60,15 @@ resource "aws_security_group" "farmacia_sg" {
   }
 
   ingress {
-    description = "MongoDB (solo para pruebas internas)"
+    description = "MongoDB optional access"
     from_port   = 27017
     to_port     = 27017
     protocol    = "tcp"
-    cidr_blocks = [var.my_ip_cidr]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
-    description = "Permitir todo tráfico saliente"
+    description = "Allow all outbound traffic"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -80,7 +80,7 @@ resource "aws_security_group" "farmacia_sg" {
   }
 }
 
-# 🚀 EC2: Servidor Tienda con Docker + microservicios
+# 🚀 EC2 con Ubuntu + Docker Compose + microservicios
 resource "aws_instance" "farmacia_api" {
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = var.instance_type
@@ -94,29 +94,32 @@ resource "aws_instance" "farmacia_api" {
     set -eux
     export DEBIAN_FRONTEND=noninteractive
 
-    # 🔧 Actualizar sistema e instalar dependencias
     apt-get update -y
-    apt-get install -y python3-pip docker.io git curl
+    apt-get install -y docker.io git curl
 
-    # 🐳 Instalar Docker Compose
-    curl -L "https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    # Instalar Docker Compose (última versión estable)
+    curl -L "https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-Linux-x86_64" -o /usr/local/bin/docker-compose
     chmod +x /usr/local/bin/docker-compose
 
-    # 🔑 Habilitar Docker y agregar usuario 'ubuntu'
+    # Habilitar Docker
     systemctl enable docker
     systemctl start docker
     usermod -aG docker ubuntu
 
-    # 📁 Clonar el repositorio con el proyecto
+    # Esperar a que Docker esté completamente operativo
+    sleep 10
+
+    # Clonar el repositorio
+    mkdir -p /home/ubuntu
     cd /home/ubuntu
-    git clone ${var.repo_url} farmacia_api
+    git clone ${var.repo_url} farmacia_api || true
     cd farmacia_api
 
-    # 🗃️ Crear volumen persistente para MongoDB
+    # Crear volumen persistente
     mkdir -p data/db
     chmod -R 777 data/db
 
-    # 🚀 Levantar todos los servicios
+    # Levantar los servicios
     /usr/local/bin/docker-compose up -d
   EOF
 
